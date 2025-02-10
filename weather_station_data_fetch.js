@@ -72,3 +72,31 @@ function processWeatherStations(data) {
     }
     }
 
+  // Usage
+    const apiUrl = 'https://api.weather.gov/stations';
+
+  // Callback Approach
+    fetchWithCallback(apiUrl, (err, data) => {
+    if (err) return console.error('Callback Error:', err);
+    const stations = processWeatherStations(data);
+    displayStations(stations.slice(0, 5)); // Show first 5 stations
+    });
+
+  // Promise Approach
+    fetchWithPromise(apiUrl)
+    .then(data => {
+        const stations = processWeatherStations(data);
+      displayStations(stations.slice(5, 10)); // Show next 5 stations
+    })
+    .catch(err => console.error('Promise Error:', err));
+
+  // Async/Await Approach
+    (async () => {
+    try {
+        const data = await fetchWithAsyncAwait(apiUrl);
+        const stations = processWeatherStations(data);
+      displayStations(stations.slice(10, 15)); // Show another 5 stations
+    } catch (err) {
+        console.error('Async/Await Error:', err);
+    }
+    })();
