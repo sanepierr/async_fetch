@@ -56,3 +56,19 @@ function processWeatherStations(data) {
         return response.json();
     });
     }
+
+
+
+  // 3. Async/Await Implementation
+    async function fetchWithAsyncAwait(url) {
+    try {
+        const response = await fetch(url, {
+        headers: { 'User-Agent': 'WeatherDemo/1.0' }
+        });
+        if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
+        return await response.json();
+    } catch (error) {
+        throw error;
+    }
+    }
+
