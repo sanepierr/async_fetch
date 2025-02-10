@@ -12,3 +12,9 @@ A JavaScript project demonstrating three different approaches to fetch and proce
 - Data processing and formatted console output
 - HTTP header configuration for API access
 - Coordinate formatting and data transformation
+
+# First initialize npm package (if you haven't already)
+npm init -y
+
+# Then install node-fetch
+npm install node-fetch

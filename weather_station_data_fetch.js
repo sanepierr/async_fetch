@@ -1,102 +1,115 @@
+const https = require('https');
+
 // Sample Data Processing and Display Functions
 function processWeatherStations(data) {
-    return data.features.map(station => ({
-        id: station.properties.stationIdentifier,
-        name: station.properties.name,
-        coordinates: [
-        station.geometry.coordinates[1].toFixed(4),
-        station.geometry.coordinates[0].toFixed(4)
-        ]
-    }));
+  if (!data?.features) throw new Error('Invalid data format');
+  
+  return data.features.map(station => ({
+    id: station.properties.stationIdentifier,
+    name: station.properties.name,
+    coordinates: [
+      station.geometry.coordinates[1].toFixed(4),
+      station.geometry.coordinates[0].toFixed(4)
+    ]
+  }));
+}
+
+function displayStations(stations) {
+  console.log('Weather Stations:');
+  stations.forEach((station, index) => {
+    console.log(`#${index + 1} ${station.id}: ${station.name}`);
+    console.log(`   Coordinates: ${station.coordinates.join(', ')}\n`);
+  });
+}
+
+// 1. Callback Implementation (Node.js https module)
+function fetchWithCallback(url, callback) {
+  const req = https.get(url, {
+    headers: { 'User-Agent': 'WeatherDemo/1.0' }
+  }, (res) => {
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      return callback(new Error(`HTTP Error ${res.statusCode}`));
+    }
+
+    let data = [];
+    res.on('data', chunk => data.push(chunk));
+    res.on('end', () => {
+      try {
+        const parsed = JSON.parse(Buffer.concat(data).toString());
+        callback(null, parsed);
+      } catch (err) {
+        callback(new Error('JSON parse error'));
+      }
+    });
+  });
+
+  req.on('error', err => callback(err));
+  req.end();
+}
+
+// 2. Promise Implementation (Native fetch)
+function fetchWithPromise(url) {
+  return fetch(url, {
+    headers: { 'User-Agent': 'WeatherDemo/1.0' }
+  })
+  .then(response => {
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
+  });
+}
+
+// 3. Async/Await Implementation (Native fetch)
+async function fetchWithAsyncAwait(url) {
+  try {
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'WeatherDemo/1.0' }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} ${response.statusText}`);
     }
     
-    function displayStations(stations) {
-    console.log('%cWeather Stations:', 'font-weight: bold; color: #2c3e50;');
-    stations.forEach(station => {
-        console.log(
-        `%c${station.id}: ${station.name}`,
-        'color: #2980b9;',
-        `\nCoordinates: ${station.coordinates.join(', ')}`
-        );
-    });
-    }
+    return await response.json();
+  } catch (error) {
+    throw error;
+  }
+}
 
-  // 1. Callback Implementation
-    function fetchWithCallback(url, callback) {
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', url);
-    xhr.setRequestHeader('User-Agent', 'WeatherDemo/1.0');
-    xhr.onload = function() {
-        if (xhr.status >= 200 && xhr.status < 300) {
-        try {
-            const data = JSON.parse(xhr.responseText);
-            callback(null, data);
-        } catch (err) {
-            callback(new Error('Failed to parse JSON'), null);
-        }
-        } else {
-        callback(new Error(`HTTP Error ${xhr.status}`), null);
-        }
-    };
-    xhr.onerror = function() {
-        callback(new Error('Network Failure'), null);
-    };
-    xhr.send();
-    }
+// Main Execution
+const API_URL = 'https://api.weather.gov/stations';
 
+// Run all three methods simultaneously
+console.log('Starting data fetching...\n');
 
-
-  // 2. Promise Implementation
-    function fetchWithPromise(url) {
-    return fetch(url, {
-    headers: { 'User-Agent': 'WeatherDemo/1.0' }
-    })
-    .then(response => {
-        if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
-        return response.json();
-    });
-    }
-
-
-
-  // 3. Async/Await Implementation
-    async function fetchWithAsyncAwait(url) {
-    try {
-        const response = await fetch(url, {
-        headers: { 'User-Agent': 'WeatherDemo/1.0' }
-        });
-        if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
-        return await response.json();
-    } catch (error) {
-        throw error;
-    }
-    }
-
-  // Usage
-    const apiUrl = 'https://api.weather.gov/stations';
-
-  // Callback Approach
-    fetchWithCallback(apiUrl, (err, data) => {
-    if (err) return console.error('Callback Error:', err);
+// Callback Approach
+fetchWithCallback(API_URL, (err, data) => {
+  console.log('\n=== Callback Results ===');
+  if (err) return console.error('Error:', err.message);
+  try {
     const stations = processWeatherStations(data);
-    displayStations(stations.slice(0, 5)); // Show first 5 stations
-    });
+    displayStations(stations.slice(0, 3));
+  } catch (e) {
+    console.error('Processing Error:', e.message);
+  }
+});
 
-  // Promise Approach
-    fetchWithPromise(apiUrl)
-    .then(data => {
-        const stations = processWeatherStations(data);
-      displayStations(stations.slice(5, 10)); // Show next 5 stations
-    })
-    .catch(err => console.error('Promise Error:', err));
+// Promise Approach
+fetchWithPromise(API_URL)
+  .then(data => {
+    console.log('\n=== Promise Results ===');
+    const stations = processWeatherStations(data);
+    displayStations(stations.slice(3, 6));
+  })
+  .catch(err => console.error('Error:', err.message));
 
-  // Async/Await Approach
-    (async () => {
-    try {
-        const data = await fetchWithAsyncAwait(apiUrl);
-        const stations = processWeatherStations(data);
-      displayStations(stations.slice(10, 15)); // Show another 5 stations
-    } catch (err) {
-        console.error('Async/Await Error:', err);
-    }
-    })();
+// Async/Await Approach
+(async () => {
+  try {
+    console.log('\n=== Async/Await Results ===');
+    const data = await fetchWithAsyncAwait(API_URL);
+    const stations = processWeatherStations(data);
+    displayStations(stations.slice(6, 9));
+  } catch (err) {
+    console.error('Error:', err.message);
+  }
+})();

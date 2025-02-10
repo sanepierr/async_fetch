@@ -1,0 +1,15 @@
+{
+  "name": "async_fetch",
+  "version": "1.0.0",
+  "description": "A JavaScript project demonstrating three different approaches to fetch and process weather station data from the NOAA API.",
+  "main": "weather_station_data_fetch.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  }
+}
