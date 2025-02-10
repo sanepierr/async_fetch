@@ -43,3 +43,16 @@ function processWeatherStations(data) {
     };
     xhr.send();
     }
+
+
+
+  // 2. Promise Implementation
+    function fetchWithPromise(url) {
+    return fetch(url, {
+    headers: { 'User-Agent': 'WeatherDemo/1.0' }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
+        return response.json();
+    });
+    }
