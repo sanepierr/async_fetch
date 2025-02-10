@@ -21,3 +21,25 @@ function processWeatherStations(data) {
     });
     }
 
+  // 1. Callback Implementation
+    function fetchWithCallback(url, callback) {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url);
+    xhr.setRequestHeader('User-Agent', 'WeatherDemo/1.0');
+    xhr.onload = function() {
+        if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+            const data = JSON.parse(xhr.responseText);
+            callback(null, data);
+        } catch (err) {
+            callback(new Error('Failed to parse JSON'), null);
+        }
+        } else {
+        callback(new Error(`HTTP Error ${xhr.status}`), null);
+        }
+    };
+    xhr.onerror = function() {
+        callback(new Error('Network Failure'), null);
+    };
+    xhr.send();
+    }
